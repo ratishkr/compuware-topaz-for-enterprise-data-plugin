@@ -1,0 +1,5 @@
+<div>
+The dataprivacy override FAEXPATH, that defines the path for File-AID Rules Engine location. Only applicable for RDX Extract executions.
+<p/>Optional? Yes
+<p/>Context-able? Yes
+</div>

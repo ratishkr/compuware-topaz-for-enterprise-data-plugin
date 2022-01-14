@@ -1,0 +1,5 @@
+<div>
+The repository where Compare Pro execution results will be stored, thereby applicable only to comparePro specifications. 
+<p/>Optional? Yes, defaults to the repository in which specification resides, if not specified.
+<p/>Context-able? No 
+</div>

@@ -1,0 +1,5 @@
+<div>
+The type of the specification that is to be executed.Possible values: compare, convert, extract, load, exsuite.
+<p/>Optional? No, mandatory if single specification execution is selected.
+<p/>Context-able? No 
+</div>
