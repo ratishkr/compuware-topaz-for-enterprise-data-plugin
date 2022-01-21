@@ -1,5 +1,0 @@
-<div>
-The CES URL to be used for license validation. It has to be either be URL for the cloud CES or the client's locally installed CES.
-<p/>Optional? No 
-<p/>Context-able? Yes
-</div>

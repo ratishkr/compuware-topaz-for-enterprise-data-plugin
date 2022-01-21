@@ -1,8 +1,7 @@
 /**
  * The MIT License (MIT)
  * 
- * Copyright (c) 2015-2020 Compuware Corporation
- * (c) Copyright 2019-2020 BMC Software, Inc.
+ * (c) Copyright 2022 BMC Software, Inc.
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
@@ -15,7 +14,6 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package com.compuware.jenkins.ted;
 
 import java.io.FileNotFoundException;
@@ -43,13 +41,12 @@ import jenkins.model.Jenkins;
 
 public class TEDExecutionRunnerUtils {
 
-	public static final String TTT_CLI_200601 = "20.06.01";
-	public static final String TED_MINIMUM_CLI_VERSION = TTT_CLI_200601; //Currently no changes after 20601
+	public static final String TTT_CLI_200903 = "20.09.03";
+	public static final String TED_MINIMUM_CLI_VERSION = TTT_CLI_200903; //Currently no changes after 20903
 
 	private static final String DOUBLE_QUOTE = "\"";
 	private static final String DOUBLE_QUOTE_ESCAPED = "\"\"";
 
-	
 	/**
 	 * Retrieves login information given a credential ID
 	 * 

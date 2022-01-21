@@ -1,5 +1,0 @@
-<div>
-Directive to initiate exit on encountering specification execution failure in the case of multi-specification execution. 
-<p/>Optional? Yes, defaulted to true if not defined.
-<p/>Context-able? No 
-</div>
