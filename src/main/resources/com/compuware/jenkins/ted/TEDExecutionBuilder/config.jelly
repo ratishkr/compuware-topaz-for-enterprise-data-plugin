@@ -137,7 +137,9 @@
 			</f:entry>
 		</f:optionalBlock>
 	</f:section>
-	<f:entry title="${%haltPipeline}" field="haltPipelineOnFailure">
-	    <f:checkbox title="${%haltPipelineDescription}" default="${descriptor.defaultHaltPipelineOnFailure}"/>
-	</f:entry>
-	</j:jelly>
+	<f:section title="${%haltPipeline}">
+	    <f:entry field="haltPipelineOnFailure">
+		    <f:checkbox title="${%haltPipelineDescription}" default="${descriptor.defaultHaltPipelineOnFailure}"/>
+	    </f:entry>
+	</f:section>
+</j:jelly>
