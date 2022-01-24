@@ -1,0 +1,145 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:c="/lib/credentials" xmlns:cc="/lib/compuware">
+	<f:section title="${%sectionSpecification}">
+		<f:entry title="${%repositoryName}" field="repositoryName">
+			<f:textbox default="${descriptor.defaultRepositoryName}"/>
+		</f:entry>
+		<f:entry title="${%resultsRepositoryName}" field="resultsRepositoryName">
+			<f:textbox default="${descriptor.defaultResultsRepositoryName}"/>
+		</f:entry>
+		<f:block> 
+				<table width="100%">
+					<f:nested>
+						<f:radioBlock title="${%singleSpecificationExecution}" name="selectExecutionTypeRadio" value="${descriptor.selectSingleSpecExecutionValue}" checked="${instance==null || instance.isSingleSpecExecution()}" inline="${true}">
+							<f:entry title="${%specificationName}" field="specificationName">
+								<f:textbox default="${descriptor.defaultSpecificationName}"/>
+							</f:entry>
+							<f:entry title="${%specificationType}" field="specificationType">
+								<f:select default="${descriptor.defaultSpecificationType}"/>
+							</f:entry>
+						</f:radioBlock>
+					</f:nested>
+					<f:nested>
+						<f:radioBlock title="${%multiSpecificationExecution}" name="selectExecutionTypeRadio" value="${descriptor.selectMultiSpecExecutionValue}" checked="${instance.isMultiSpecExecution()}" inline="${true}">
+							<f:entry field="specificationList">
+								<f:textarea default="${descriptor.defaultSpecificationList}"/>
+							</f:entry>
+							<f:entry field="exitOnFailure">
+								<f:checkbox title="${%exitOnFailure}" default="${descriptor.defaultExitOnFailure}"/>
+							</f:entry>
+						</f:radioBlock>
+					</f:nested>
+				</table>
+		</f:block>
+	</f:section>
+	<f:entry title="${%executionContext}" field="executionContext">
+		<f:textbox default="${descriptor.defaultExecutionContext}"/>
+	</f:entry>
+	<f:entry title="${%executionTimeout}" field="executionTimeout">
+		<f:number default="${descriptor.defaultExecutionTimeout}"/>
+	</f:entry>
+	<f:section title="${%sectionCES}">
+		<f:optionalBlock title="${%optionDefineCES}" field="defineCES" default="${descriptor.defaultDefineCES}" inline="${true}">
+			<f:entry title="${%cesURL}" field="cesURL">
+				<f:select /> 
+				<label><a href="/configure#cpwr-config">Manage connections</a></label>
+			</f:entry>
+			<f:optionalBlock title="${%useCloudCES}" field="useCloudCES" default="${descriptor.defaultUseCloud}" inline="${true}">
+				<f:entry title="${%cloudCustomerNo}" field="cloudCustomerNo">
+					<f:textbox default="${descriptor.defaultCloudCustomerNo}"/>
+				</f:entry>
+				<f:entry title="${%cloudSiteId}" field="cloudSiteID">
+					<f:textbox default="${descriptor.defaultCloudSiteID}"/>
+				</f:entry>
+			</f:optionalBlock>
+		</f:optionalBlock>
+	</f:section>
+	<f:section title="${%sectionCommunicationManager}">
+		<f:optionalBlock title="${%defineManager}" field="defineManager" default="${descriptor.defaultDefineManager}" inline="${true}">
+			<f:entry title="${%communicationManager}" field="communicationManager">
+				<f:textbox default="${descriptor.defaultCommunicationManager}"/>
+			</f:entry>
+			<f:entry title="${%communicationManagerPort}" field="communicationManagerPort">
+				<f:number default="${descriptor.defaultCommunicationManagerPort}"/>
+			</f:entry>
+		</f:optionalBlock>
+	</f:section>
+	<f:section title="${%sectionExecutionServer}">
+		<f:optionalBlock title="${%defineServer}" field="defineServer" default="${descriptor.defaultServer}" inline="${true}">	
+			<f:entry title="${%executionServer}" field="executionServer">
+				<f:textbox default="${descriptor.defaultExecutionServer}"/>
+			</f:entry>
+			<f:entry title="${%executionServerPort}" field="executionServerPort">
+				<f:number default="${descriptor.defaultExecutionServerPort}"/>
+			</f:entry>
+		</f:optionalBlock>
+	</f:section>
+	<f:section title="${%sectionExecutionHost}">
+		<f:optionalBlock title="${%defineHost}" field="defineHost" default="${descriptor.defaultDefineHost}" inline="${true}">
+			<f:entry title="${%hostConnection}" field="connectionId">
+				<cc:hostSelect default=""/>
+			</f:entry>
+			<f:optionalBlock title="${%includeCred}" field="includeCred" default="${descriptor.defaultincludeCred}" inline="${true}">		
+				<f:entry title="${%hostCredentials}" field="credentialsId">
+					<c:select/>
+				</f:entry>
+			</f:optionalBlock>
+		</f:optionalBlock>
+	</f:section>
+	<f:section title="${%sectionJCLJobcard}">
+		<f:optionalBlock title="${%defineJobcard}" field="defineJobcard" default="${descriptor.defaultDefineJobcard}" inline="${true}">
+			<f:entry title="${%jclJobcardLine1}" field="jclJobcardLine1">
+				<f:textbox default="${descriptor.defaultJCLJobcardLine1}"/>
+			</f:entry>
+			<f:entry title="${%jclJobcardLine2}" field="jclJobcardLine2">
+				<f:textbox default="${descriptor.defaultJCLJobcardLine2}"/>
+			</f:entry>
+			<f:entry title="${%jclJobcardLine3}" field="jclJobcardLine3">
+				<f:textbox default="${descriptor.defaultJCLJobcardLine3}"/>
+			</f:entry>
+			<f:entry title="${%jclJobcardLine4}" field="jclJobcardLine4">
+				<f:textbox default="${descriptor.defaultJCLJobcardLine4}"/>
+			</f:entry>
+			<f:entry title="${%jclJobcardLine5}" field="jclJobcardLine5">
+				<f:textbox default="${descriptor.defaultJCLJobcardLine5}"/>
+			</f:entry>
+		</f:optionalBlock>
+	</f:section>
+	<f:section title="${%sectionDatasetQualifiers}">
+		<f:optionalBlock title="${%defineQualifiers}" field="defineQualifiers" default="${descriptor.defaultDefineQualifiers}" inline="${true}">
+			<f:entry title="${%datasetHighLevelQualifier}" field="datasetHighLevelQualifier">
+				<f:textbox default="${descriptor.defaultDatasetHighLevelQualifier}"/>
+			</f:entry>
+			<f:entry title="${%temporaryDatasetPrefix}" field="temporaryDatasetPrefix">
+				<f:textbox default="${descriptor.defaultTemporaryDatasetPrefix}"/>
+			</f:entry>
+			<f:entry title="${%temporaryDatasetSuffix}" field="temporaryDatasetSuffix">
+				<f:textbox default="${descriptor.defaultTemporaryDatasetSuffix}"/>
+			</f:entry>
+		</f:optionalBlock>
+	</f:section>
+	<f:section title="${%sectionDataprivacyOverride}">
+		<f:optionalBlock title="${%defineDataprivacyOverride}" field="defineDataprivacyOverride" default="${descriptor.defaultDefineDataprivacyOverride}" inline="${true}">
+			<f:entry title="${%dpOverrideFADEBUG}" field="dpOverrideFADEBUG">
+				<f:textbox default="${descriptor.defaultDpOverrideFADEBUG}"/>
+			</f:entry>
+			<f:entry title="${%dpOverrideFAEXPATH}" field="dpOverrideFAEXPATH">
+				<f:textbox default="${descriptor.defaultDpOverrideFAEXPATH}"/>
+			</f:entry>
+			<f:entry title="${%dpOverrideFAIPADDR}" field="dpOverrideFAIPADDR">
+				<f:textbox default="${descriptor.defaultDpOverrideFAJPADDR}"/>
+			</f:entry>
+			<f:entry title="${%dpOverrideFAJOPTS}" field="dpOverrideFAJOPTS">
+				<f:textbox default="${descriptor.defaultDpOverrideFAJOPTS}"/>
+			</f:entry>
+			<f:entry title="${%dpOverrideFAJPATH}" field="dpOverrideFAJPATH">
+				<f:textbox default="${descriptor.defaultDpOverrideFAJPATH}"/>
+			</f:entry>
+		</f:optionalBlock>
+	</f:section>
+	<f:section title="${%haltPipeline}">
+	    <f:entry field="haltPipelineOnFailure">
+		    <f:checkbox title="${%haltPipelineDescription}" default="${descriptor.defaultHaltPipelineOnFailure}"/>
+	    </f:entry>
+	</f:section>
+</j:jelly>
