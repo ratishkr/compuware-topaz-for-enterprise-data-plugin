@@ -1,11 +1,11 @@
 ### Overview
 
-Compuware's Topaz for Entprise Data is a data manamgement product with automation to speed data extraction, privatization and loading. The plugin allows Jenkins users to run ted specifications.
+Compuware's Topaz for Entprise Data is a data management product with automation to speed data extraction, privatization and loading. The plugin allows Jenkins users to run ted specifications.
 
 ### Change Log
 
 To access the change log, go to
-[Total for Enterprise Data Change log](https://github.com/jenkinsci/compuware-topaz-for-enterprise-data-plugin/blob/master/CHANGELOG.md)
+[Topaz for Enterprise Data Change log](https://github.com/jenkinsci/compuware-topaz-for-enterprise-data-plugin/blob/master/CHANGELOG.md)
 
 ### Prerequisites
 
@@ -59,19 +59,16 @@ The following are required to use this plugin:
 
 # Product Assistance
 
-(NEEDS UPDATE) 
 Compuware provides assistance for customers with its documentation, the Compuware Support Center web site, and telephone customer support.
 
 ## Compuware Support Center
 
-(NEEDS UPDATE) 
 You can access online information for Compuware products via our Support Center site at [https://go.compuware.com](https://go.compuware.com/) Support Center provides access to critical information about your Compuware products. You can review frequently asked questions, read or download documentation, access product fixes, or e-mail your questions or comments. The first time you access Support Center, you must register and obtain a password. Registration is free.
 
 Compuware also offers User Communities, online forums to collaborate, network, and exchange best practices with other Compuware solution users worldwide. Go to <http://groups.compuware.com/> to join.
 
 ## Contacting Customer Support
 
-(NEEDS UPDATE) 
 At Compuware, we strive to make our products and documentation the best in the industry. Feedback from our customers helps us maintain our quality standards. If you need support services, please obtain the following information before calling Compuware's 24-hour telephone support:
 
 -   The name, release number, and build number of your product. This information is displayed in the **About** dialog box.
@@ -88,21 +85,18 @@ You can contact Compuware in one of the following ways:
 
 ### Phone
 
-(NEEDS UPDATE) 
 -   USA and Canada: 1-800-538-7822 or 1-313-227-5444.
 
 -   All other countries: Contact your local Compuware office. Contact information is available at [https://go.compuware.com](https://go.compuware.com/)
 
 ### Web
 
-(NEEDS UPDATE) 
 You can report issues via Compuware Support Center.
 
 **Note:** Please report all high-priority issues by phone.
 
 ### Mail
 
-(NEEDS UPDATE) 
 Customer Support  
 Compuware Corporation  
 One Campus Martius  
@@ -110,5 +104,4 @@ Detroit, MI 48226-5099
 
 ## Corporate Web Site
 
-(NEEDS UPDATE) 
 To access Compuware's site on the Web, go to [https://www.compuware.com](https://www.compuware.com/). The Compuware site provides a variety of product and support information.
