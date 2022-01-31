@@ -7,18 +7,18 @@
     <artifactId>plugin</artifactId>
     <!-- Baseline Jenkins version you use to build and test the plugin. Users must have this version or newer to run. -->
     <relativePath />
-    <version>3.2</version>
+    <version>4.0</version>
   </parent>
   
   <groupId>com.compuware.jenkins</groupId>
   <version>1.0.0</version>
-  <artifactId>compuware-topaz-for-enterprise-data-plugin</artifactId>
+  <artifactId>compuware-topaz-for-enterprise-data</artifactId>
   <packaging>hpi</packaging>
 
   <properties>
     <slf4jVersion>1.7.26</slf4jVersion>
     <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
-    <jenkins.version>2.222.4</jenkins.version>
+    <jenkins.version>2.277.1</jenkins.version>
     <!-- Java Level to use. Java 7 required when using core >= 1.612 -->
     <java.level>8</java.level>
   </properties>
