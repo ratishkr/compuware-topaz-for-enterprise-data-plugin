@@ -1449,8 +1449,13 @@ public class TEDExecutionBuilder extends Builder implements SimpleBuildStep {
 		 */
 		public ListBoxModel doFillConnectionIdItems(@AncestorInPath Jenkins context, @QueryParameter String connectionId,
 				@AncestorInPath Item project) {
-			// Admin permission check.
-		    Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+			if(project == null) {
+				//Checking Permission for admin user
+				Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+			}
+			else {
+				project.checkPermission(Item.CONFIGURE);				
+			}
 			CpwrGlobalConfiguration globalConfig = CpwrGlobalConfiguration.get();
 			HostConnection[] hostConnections = globalConfig.getHostConnections();
 
@@ -1487,8 +1492,13 @@ public class TEDExecutionBuilder extends Builder implements SimpleBuildStep {
 		 */
 		public ListBoxModel doFillCredentialsIdItems(@AncestorInPath final Jenkins context, 
 				@QueryParameter final String credentialsId, @AncestorInPath final Item project){
-			// Admin permission check.
-		    Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+			if(project == null) {
+				//Checking Permission for admin user
+				Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+			}
+			else {
+				project.checkPermission(Item.CONFIGURE);				
+			}
 			List<StandardUsernamePasswordCredentials> creds = CredentialsProvider.lookupCredentials(
 					StandardUsernamePasswordCredentials.class, project, ACL.SYSTEM, Collections.<DomainRequirement> emptyList());
 
@@ -1518,9 +1528,14 @@ public class TEDExecutionBuilder extends Builder implements SimpleBuildStep {
 		 * @return cesUrl selections
 		 * 
 		 */
-		public ListBoxModel doFillCesURLItems (@QueryParameter String cesUrl) {
-			// Admin permission check.
-		    Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+		public ListBoxModel doFillCesURLItems(@QueryParameter String cesUrl, @AncestorInPath Item project) {
+			if (project == null) {
+				// Checking Permission for admin user
+				Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+			}
+			else {
+				project.checkPermission(Item.CONFIGURE);				
+			}
 			ListBoxModel model = new ListBoxModel();
 			model.add(new Option("", "", false));
 			CpwrGlobalConfiguration globalConfig = CpwrGlobalConfiguration.get();
