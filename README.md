@@ -1,6 +1,6 @@
 ### Overview
 
-Compuware's Topaz for Entprise Data is a data management product with automation to speed data extraction, privatization and loading. The plugin allows Jenkins users to run ted specifications.
+Compuware's Topaz for Enterprise Data is a data management product with automation to speed data extraction, privatization and loading. The plugin allows Jenkins users to run ted specifications.
 
 ### Change Log
 
