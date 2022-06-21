@@ -34,61 +34,66 @@ import hudson.util.ArgumentListBuilder;
 /**
  *
  */
-public class TEDExecutionRunner implements IExecutionCommandArguments {
-	
+public class TEDExecutionRunner {
+
 	private static final String TED_CLI_BAT = "TedCLI.bat";
 	private static final String TED_CLI_SH = "TedCLI.sh";
-	
+
 	private final TEDExecutionBuilder tedBuilder;
 
 	private Run<?, ?> build;
-	private String remoteFileSeparator;
 
 	/**
 	 * Constructor
 	 * 
 	 * @param tedBuilder
-	 * 			  An instance of <code>TEDExecutionBuilder</code> containing the arguments.
+	 *            An instance of <code>TEDExecutionBuilder</code> containing the arguments.
 	 */
 	public TEDExecutionRunner(TEDExecutionBuilder tedBuilder) {
 		this.tedBuilder = tedBuilder;
-		
+
 	}
-	
+
 	/**
-	 * @param build <code>Run</code>
-	 * @param launcher <code>Launcher</code>
-	 * @param workspaceFilePath  <code>FilePath</code>
-	 * @param listener <code>TaskListener</code> 
-	 * @return  <code>boolean</code>
-	 * @throws IOException <code>IOException</code>IOException
-	 * @throws InterruptedException <code>InterruptedException</code>
+	 * @param build
+	 *            <code>Run</code>
+	 * @param launcher
+	 *            <code>Launcher</code>
+	 * @param workspaceFilePath
+	 *            <code>FilePath</code>
+	 * @param listener
+	 *            <code>TaskListener</code>
+	 * @return <code>boolean</code>
+	 * @throws IOException
+	 *             <code>IOException</code>IOException
+	 * @throws InterruptedException
+	 *             <code>InterruptedException</code>
 	 */
-	public boolean run(final Run<?, ?> build, final Launcher launcher, final FilePath workspaceFilePath,
-			final TaskListener listener) throws IOException, InterruptedException {
+	public boolean run(final Run<?, ?> build, final Launcher launcher, final FilePath workspaceFilePath, final TaskListener listener)
+			throws IOException, InterruptedException {
 		// initialization
 		ArgumentListBuilder args = new ArgumentListBuilder();
 		EnvVars env = build.getEnvironment(listener);
 		VirtualChannel vChannel = launcher.getChannel();
-		
-		if (vChannel == null){
+
+		if (vChannel == null) {
 			listener.getLogger().println("Error: No channel could be retrieved");
 			return false;
 		}
-		
+
 		this.build = build;
 		Properties remoteProperties = vChannel.call(new RemoteSystemProperties());
-		remoteFileSeparator = remoteProperties.getProperty("file.separator");
+		String remoteFileSeparator = remoteProperties.getProperty("file.separator");
 		String osScriptFile = launcher.isUnix() ? TED_CLI_SH : TED_CLI_BAT;
 
 		TEDExecutionRunnerUtils.logJenkinsAndPluginVersion(listener);
 
 		FilePath cliScriptPath = TEDExecutionRunnerUtils.getCLIScriptPath(launcher, listener, remoteFileSeparator, osScriptFile);
 		args.add(cliScriptPath.getRemote());
-		
+
 		addArguments(args, launcher, listener, remoteFileSeparator);
 
-		FilePath workDir = new FilePath (vChannel, workspaceFilePath.getRemote());
+		FilePath workDir = new FilePath(vChannel, workspaceFilePath.getRemote());
 		workDir.mkdirs();
 
 		listener.getLogger().println("----------------------------------");
@@ -105,7 +110,8 @@ public class TEDExecutionRunner implements IExecutionCommandArguments {
 		if (exitValue != 0) {
 			if (!tedBuilder.getHaltPipelineOnFailure()) {
 				// Don't fail the build so the pipeline can continue.
-				listener.getLogger().println("Test result failed but build continues (\"" + tedBuilder.getHaltPipelineTitle() + "\" is false)");
+				listener.getLogger()
+						.println("Test result failed but build continues (\"" + tedBuilder.getHaltPipelineTitle() + "\" is false)");
 				exitValue = 0;
 			} else {
 				listener.getLogger().println("Specification Execution Failed.");
@@ -114,85 +120,111 @@ public class TEDExecutionRunner implements IExecutionCommandArguments {
 
 		return (exitValue == 0);
 	}
-	
+
 	/**
 	 * Adds an arguments to the argument list.
 	 * 
 	 * @param args
-	 *		  The argument list to add to.
+	 *            The argument list to add to.
 	 * @param launcher
 	 *            The machine that the files will be checked out.
 	 * @param listener
-	 * 		  Build listener
+	 *            Build listener
 	 * @param remoteFileSeparator
-	 * 			  The remote file separator
-	 * @throws InterruptedException 
-	 * @throws IOException 
+	 *            The remote file separator
 	 */
-	private void addArguments(final ArgumentListBuilder args, final Launcher launcher, final TaskListener listener, final String remoteFileSeparator) throws IOException, InterruptedException {
-		boolean min200903 = TEDExecutionRunnerUtils.isMinimumRelease(launcher, listener, remoteFileSeparator, TEDExecutionRunnerUtils.TTT_CLI_200903);
-		
-		if(!min200903) {
+	private void addArguments(final ArgumentListBuilder args, final Launcher launcher, final TaskListener listener,
+			final String remoteFileSeparator) {
+		boolean min200903 = TEDExecutionRunnerUtils.isMinimumRelease(launcher, listener, remoteFileSeparator,
+				TEDExecutionRunnerUtils.TTT_CLI_200903);
+
+		if (!min200903) {
 			return;
 		}
 
-		args.add(COMMAND[1]).add("execute");
-		
-		if(!Strings.isNullOrEmpty(tedBuilder.getRepositoryName())) {
-			args.add(REPOSITORY[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getRepositoryName()));
+		args.add(ExecutionCommandArguments.getCOMMAND()[1]).add("execute");
+
+		addRepositoryArguments(args);
+		addSpecificationArguments(args);
+
+		if (!Strings.isNullOrEmpty(tedBuilder.getExecutionTimeout())) {
+			args.add(ExecutionCommandArguments.getExecutionTimeout()[1]).add(tedBuilder.getExecutionTimeout());
 		}
-		if(!Strings.isNullOrEmpty(tedBuilder.getResultsRepositoryName())) {
-			args.add(RESULTS_REPOSITORY[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getResultsRepositoryName()));
-		}
-		if(tedBuilder.isSingleSpecExecution()) {
-			if(!Strings.isNullOrEmpty(tedBuilder.getSpecificationName())) {
-				args.add(SPECIFICATION[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getSpecificationName()));
-			}
-			if(!Strings.isNullOrEmpty(tedBuilder.getSpecificationType())) {
-				args.add(SPECIFICATION_TYPE[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getSpecificationType()));
-			}
-		} else {
-			if(!Strings.isNullOrEmpty(tedBuilder.getSpecificationList())) {
-				args.add(SPECIFICATION_LIST[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getSpecificationList()));
-			}
-			args.add(EXIT_ON_FAILURE[1]).add(tedBuilder.getExitOnFailure()?"true":"false");
-		}
-		if(!Strings.isNullOrEmpty(tedBuilder.getExecutionTimeout())) {
-			args.add(EXECUTION_TIMEOUT[1]).add(tedBuilder.getExecutionTimeout());
-		}
-		if(!Strings.isNullOrEmpty(tedBuilder.getExecutionContext())) {
+		if (!Strings.isNullOrEmpty(tedBuilder.getExecutionContext())) {
 			String exContext = tedBuilder.getExecutionContext();
-			
-			if(!exContext.contains("/") && !exContext.contains("\\")) {
+
+			if (!exContext.contains("/") && !exContext.contains("\\")) {
 				StringBuilder sb = new StringBuilder(TEDExecutionRunnerUtils.getTopaWorkbenchCLIPath(launcher));
 				sb.append(remoteFileSeparator).append("EnterpriseData").append(remoteFileSeparator).append(exContext);
-				exContext =  sb.toString(); 
+				exContext = sb.toString();
 			}
-			
-			args.add(EXECUTION_CONTEXT[1]).add(TEDExecutionRunnerUtils.escapeForScript(exContext));
+
+			args.add(ExecutionCommandArguments.getExecutionContext()[1]).add(TEDExecutionRunnerUtils.escapeForScript(exContext));
 		}
-		
-		addCESArguments(args);		
+
+		addCESArguments(args);
 		addCommunicationManagerArguments(args);
 		addExecutionServerArguments(args);
 		addMainframeSpecificArguments(args);
 	}
 
 	/**
+	 * Adds arguments related to repository.
+	 * 
+	 * @param args
+	 *            - list of arguments.
+	 */
+	private void addRepositoryArguments(final ArgumentListBuilder args) {
+		if (!Strings.isNullOrEmpty(tedBuilder.getRepositoryName())) {
+			args.add(ExecutionCommandArguments.getREPOSITORY()[1])
+					.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getRepositoryName()));
+		}
+		if (!Strings.isNullOrEmpty(tedBuilder.getResultsRepositoryName())) {
+			args.add(ExecutionCommandArguments.getResultsRepository()[1])
+					.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getResultsRepositoryName()));
+		}
+	}
+
+	/**
+	 * Adds arguments related to specification.
+	 * 
+	 * @param args
+	 *            - list of arguments.
+	 */
+	private void addSpecificationArguments(final ArgumentListBuilder args) {
+		if (tedBuilder.isSingleSpecExecution()) {
+			if (!Strings.isNullOrEmpty(tedBuilder.getSpecificationName())) {
+				args.add(ExecutionCommandArguments.getSPECIFICATION()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getSpecificationName()));
+			}
+			if (!Strings.isNullOrEmpty(tedBuilder.getSpecificationType())) {
+				args.add(ExecutionCommandArguments.getSpecificationType()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getSpecificationType()));
+			}
+		} else {
+			if (!Strings.isNullOrEmpty(tedBuilder.getSpecificationList())) {
+				args.add(ExecutionCommandArguments.getSpecificationList()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getSpecificationList()));
+			}
+			args.add(ExecutionCommandArguments.getExitOnFailure()[1]).add(tedBuilder.getExitOnFailure() ? "true" : "false");
+		}
+	}
+
+	/**
 	 * @param args
 	 */
 	private void addCESArguments(final ArgumentListBuilder args) {
-		if(tedBuilder.getDefineCES()) {
-			args.add(USE_CLOUD_CES[1]).add(tedBuilder.getUseCloudCES()?"true":"false");
+		if (tedBuilder.getDefineCES()) {
+			args.add(ExecutionCommandArguments.getUseCloudCES()[1]).add(tedBuilder.getUseCloudCES() ? "true" : "false");
 
-			if(!Strings.isNullOrEmpty(tedBuilder.getCesURL())) {
-				args.add(CES_URL[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getCesURL()));
+			if (!Strings.isNullOrEmpty(tedBuilder.getCesURL())) {
+				args.add(ExecutionCommandArguments.getCESURL()[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getCesURL()));
 			}
-			if(!Strings.isNullOrEmpty(tedBuilder.getCloudCustomerNo())) {
-				args.add(CES_CUSTOMER_NUMBER[1]).add(tedBuilder.getCloudCustomerNo());
+			if (!Strings.isNullOrEmpty(tedBuilder.getCloudCustomerNo())) {
+				args.add(ExecutionCommandArguments.getCESCustomerNumber()[1]).add(tedBuilder.getCloudCustomerNo());
 			}
-			if(!Strings.isNullOrEmpty(tedBuilder.getCloudSiteID())) {
-				args.add(CES_SITE_ID[1]).add(tedBuilder.getCloudSiteID());
+			if (!Strings.isNullOrEmpty(tedBuilder.getCloudSiteID())) {
+				args.add(ExecutionCommandArguments.getCESSiteID()[1]).add(tedBuilder.getCloudSiteID());
 			}
 		}
 	}
@@ -201,12 +233,13 @@ public class TEDExecutionRunner implements IExecutionCommandArguments {
 	 * @param args
 	 */
 	private void addCommunicationManagerArguments(final ArgumentListBuilder args) {
-		if(tedBuilder.getDefineManager()) {
-			if(!Strings.isNullOrEmpty(tedBuilder.getCommunicationManager())) {
-				args.add(COMM_MANAGER[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getCommunicationManager()));
+		if (tedBuilder.getDefineManager()) {
+			if (!Strings.isNullOrEmpty(tedBuilder.getCommunicationManager())) {
+				args.add(ExecutionCommandArguments.getCommManager()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getCommunicationManager()));
 			}
-			if(!Strings.isNullOrEmpty(tedBuilder.getCommunicationManagerPort())) {
-				args.add(COMM_MANAGER_PORT[1]).add(tedBuilder.getCommunicationManagerPort());
+			if (!Strings.isNullOrEmpty(tedBuilder.getCommunicationManagerPort())) {
+				args.add(ExecutionCommandArguments.getCommManagerPort()[1]).add(tedBuilder.getCommunicationManagerPort());
 			}
 		}
 	}
@@ -215,12 +248,13 @@ public class TEDExecutionRunner implements IExecutionCommandArguments {
 	 * @param args
 	 */
 	private void addExecutionServerArguments(final ArgumentListBuilder args) {
-		if(tedBuilder.getDefineServer()) {
-			if(!Strings.isNullOrEmpty(tedBuilder.getExecutionServer())) {
-				args.add(EXECUTION_SERVER[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getExecutionServer()));
+		if (tedBuilder.getDefineServer()) {
+			if (!Strings.isNullOrEmpty(tedBuilder.getExecutionServer())) {
+				args.add(ExecutionCommandArguments.getExecutionServer()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getExecutionServer()));
 			}
-			if(!Strings.isNullOrEmpty(tedBuilder.getExecutionServerPort())) {
-				args.add(EXECUTION_SERVER_PORT[1]).add(tedBuilder.getExecutionServerPort());
+			if (!Strings.isNullOrEmpty(tedBuilder.getExecutionServerPort())) {
+				args.add(ExecutionCommandArguments.getExecutionServerPort()[1]).add(tedBuilder.getExecutionServerPort());
 			}
 		}
 	}
@@ -240,17 +274,17 @@ public class TEDExecutionRunner implements IExecutionCommandArguments {
 	 * @param args
 	 */
 	private void addHostConnectionInfoArguments(final ArgumentListBuilder args) {
-		if(tedBuilder.getDefineHost()  && !Strings.isNullOrEmpty(tedBuilder.getConnectionId())) {
+		if (tedBuilder.getDefineHost() && !Strings.isNullOrEmpty(tedBuilder.getConnectionId())) {
 			HostConnection connection = null;
 			CpwrGlobalConfiguration globalConfig = CpwrGlobalConfiguration.get();
-	
-			if (globalConfig != null){
+
+			if (globalConfig != null) {
 				connection = globalConfig.getHostConnection(tedBuilder.getConnectionId());
 			}
 			if (connection != null) {
-				args.add(EXECUTION_HOST[1]).add(connection.getHost());
-				args.add(EXECUTION_HOST_PORT[1]).add(connection.getPort());
-				args.add(CCSID[1]).add(connection.getCodePage());
+				args.add(ExecutionCommandArguments.getExecutionHost()[1]).add(connection.getHost());
+				args.add(ExecutionCommandArguments.getExecutionHostPort()[1]).add(connection.getPort());
+				args.add(ExecutionCommandArguments.getCCSID()[1]).add(connection.getCodePage());
 			}
 		}
 	}
@@ -259,11 +293,13 @@ public class TEDExecutionRunner implements IExecutionCommandArguments {
 	 * @param args
 	 */
 	private void addHostCredentialsArguments(final ArgumentListBuilder args) {
-		if(tedBuilder.getIncludeCred()) {
+		if (tedBuilder.getIncludeCred()) {
 			String hostCreds = tedBuilder.getCredentialsId();
-			if(!Strings.isNullOrEmpty(hostCreds)) {
-				args.add(HCI_USER_ID[1]).add(TEDExecutionRunnerUtils.getLoginInformation(build.getParent(), hostCreds).getUsername(), false);
-				args.add(HCI_PASSWORD[1]).add(TEDExecutionRunnerUtils.getLoginInformation(build.getParent(), hostCreds).getPassword(), true);
+			if (!Strings.isNullOrEmpty(hostCreds)) {
+				args.add(ExecutionCommandArguments.getHCIUserID()[1])
+						.add(TEDExecutionRunnerUtils.getLoginInformation(build.getParent(), hostCreds).getUsername(), false);
+				args.add(ExecutionCommandArguments.getHCIPassword()[1])
+						.add(TEDExecutionRunnerUtils.getLoginInformation(build.getParent(), hostCreds).getPassword(), true);
 			}
 		}
 	}
@@ -272,21 +308,26 @@ public class TEDExecutionRunner implements IExecutionCommandArguments {
 	 * @param args
 	 */
 	private void addJCLJobcardArguments(final ArgumentListBuilder args) {
-		if(tedBuilder.getDefineJobcard()) {
-			if(!Strings.isNullOrEmpty(tedBuilder.getJclJobcardLine1())) {
-				args.add(JCL_JOBCARD1[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getJclJobcardLine1()));
+		if (tedBuilder.getDefineJobcard()) {
+			if (!Strings.isNullOrEmpty(tedBuilder.getJclJobcardLine1())) {
+				args.add(ExecutionCommandArguments.getJCLJobcard1()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getJclJobcardLine1()));
 			}
-			if(!Strings.isNullOrEmpty(tedBuilder.getJclJobcardLine2())) {
-				args.add(JCL_JOBCARD2[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getJclJobcardLine2()));
+			if (!Strings.isNullOrEmpty(tedBuilder.getJclJobcardLine2())) {
+				args.add(ExecutionCommandArguments.getJCLJobcard2()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getJclJobcardLine2()));
 			}
-			if(!Strings.isNullOrEmpty(tedBuilder.getJclJobcardLine3())) {
-				args.add(JCL_JOBCARD3[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getJclJobcardLine3()));
+			if (!Strings.isNullOrEmpty(tedBuilder.getJclJobcardLine3())) {
+				args.add(ExecutionCommandArguments.getJCLJobcard3()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getJclJobcardLine3()));
 			}
-			if(!Strings.isNullOrEmpty(tedBuilder.getJclJobcardLine4())) {
-				args.add(JCL_JOBCARD4[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getJclJobcardLine4()));
+			if (!Strings.isNullOrEmpty(tedBuilder.getJclJobcardLine4())) {
+				args.add(ExecutionCommandArguments.getJCLJobcard4()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getJclJobcardLine4()));
 			}
-			if(!Strings.isNullOrEmpty(tedBuilder.getJclJobcardLine5())) {
-				args.add(JCL_JOBCARD5[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getJclJobcardLine5()));
+			if (!Strings.isNullOrEmpty(tedBuilder.getJclJobcardLine5())) {
+				args.add(ExecutionCommandArguments.getJCLJobcard5()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getJclJobcardLine5()));
 			}
 		}
 	}
@@ -295,15 +336,18 @@ public class TEDExecutionRunner implements IExecutionCommandArguments {
 	 * @param args
 	 */
 	private void addDatasetQualifierArguments(final ArgumentListBuilder args) {
-		if(tedBuilder.getDefineQualifiers()) {
-			if(!Strings.isNullOrEmpty(tedBuilder.getDatasetHighLevelQualifier())) {
-				args.add(DATASET_HLQ[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getDatasetHighLevelQualifier()));
+		if (tedBuilder.getDefineQualifiers()) {
+			if (!Strings.isNullOrEmpty(tedBuilder.getDatasetHighLevelQualifier())) {
+				args.add(ExecutionCommandArguments.getDatasetHLQ()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getDatasetHighLevelQualifier()));
 			}
-			if(!Strings.isNullOrEmpty(tedBuilder.getTemporaryDatasetPrefix())) {
-				args.add(TEMP_DATASET_PREFIX[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getTemporaryDatasetPrefix()));
+			if (!Strings.isNullOrEmpty(tedBuilder.getTemporaryDatasetPrefix())) {
+				args.add(ExecutionCommandArguments.getTempDatasetPrefix()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getTemporaryDatasetPrefix()));
 			}
-			if(!Strings.isNullOrEmpty(tedBuilder.getTemporaryDatasetSuffix())) {
-				args.add(TEMP_DATASET_SUFFIX[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getTemporaryDatasetSuffix()));
+			if (!Strings.isNullOrEmpty(tedBuilder.getTemporaryDatasetSuffix())) {
+				args.add(ExecutionCommandArguments.getTempDatasetSuffix()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getTemporaryDatasetSuffix()));
 			}
 		}
 	}
@@ -312,23 +356,27 @@ public class TEDExecutionRunner implements IExecutionCommandArguments {
 	 * @param args
 	 */
 	private void addDataPrivacyOverrideArguments(final ArgumentListBuilder args) {
-		if(tedBuilder.getDefineDataprivacyOverride()) {
-			if(!Strings.isNullOrEmpty(tedBuilder.getDpOverrideFADEBUG())) {
-				args.add(FADEBUG[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getDpOverrideFADEBUG()));
+		if (tedBuilder.getDefineDataprivacyOverride()) {
+			if (!Strings.isNullOrEmpty(tedBuilder.getDpOverrideFADEBUG())) {
+				args.add(ExecutionCommandArguments.getFADEBUG()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getDpOverrideFADEBUG()));
 			}
-			if(!Strings.isNullOrEmpty(tedBuilder.getDpOverrideFAEXPATH())) {
-				args.add(FAEXPATH[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getDpOverrideFAEXPATH()));
+			if (!Strings.isNullOrEmpty(tedBuilder.getDpOverrideFAEXPATH())) {
+				args.add(ExecutionCommandArguments.getFAEXPATH()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getDpOverrideFAEXPATH()));
 			}
-			if(!Strings.isNullOrEmpty(tedBuilder.getDpOverrideFAIPADDR())) {
-				args.add(FAIPADDR[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getDpOverrideFAIPADDR()));
+			if (!Strings.isNullOrEmpty(tedBuilder.getDpOverrideFAIPADDR())) {
+				args.add(ExecutionCommandArguments.getFAIPADDR()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getDpOverrideFAIPADDR()));
 			}
-			if(!Strings.isNullOrEmpty(tedBuilder.getDpOverrideFAJOPTS())) {
-				args.add(FAJOPTS[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getDpOverrideFAJOPTS()));
+			if (!Strings.isNullOrEmpty(tedBuilder.getDpOverrideFAJOPTS())) {
+				args.add(ExecutionCommandArguments.getFAJOPTS()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getDpOverrideFAJOPTS()));
 			}
-			if(!Strings.isNullOrEmpty(tedBuilder.getDpOverrideFAJPATH())) {
-				args.add(FAJPATH[1]).add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getDpOverrideFAJPATH()));
+			if (!Strings.isNullOrEmpty(tedBuilder.getDpOverrideFAJPATH())) {
+				args.add(ExecutionCommandArguments.getFAJPATH()[1])
+						.add(TEDExecutionRunnerUtils.escapeForScript(tedBuilder.getDpOverrideFAJPATH()));
 			}
 		}
 	}
-	
 }
