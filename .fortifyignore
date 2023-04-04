@@ -1,0 +1,9 @@
+#The following files will be ignored while doing fortify scan
+
+target
+work
+.settings
+
+#Ignore auto-generated files
+**/*.project
+**/*.classpath
