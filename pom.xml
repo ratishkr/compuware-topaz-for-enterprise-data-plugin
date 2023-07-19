@@ -25,8 +25,8 @@
     <java.level>8</java.level>
   </properties>
   
-  <name>Compuware Topaz for Enterprise Data</name>
-  <description>Runs the Compuware Topaz for Enterprise Data CLI to execute tests.</description>
+  <name>BMC AMI DevX Data Studio</name>
+  <description>Runs the BMC AMI DevX Data Studio CLI to execute tests.</description>
   <url>https://github.com/jenkinsci/compuware-topaz-for-enterprise-data-plugin</url>
   <licenses>
     <license>
